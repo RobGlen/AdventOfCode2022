@@ -2,7 +2,7 @@
 
 #include "Day.h"
 
-int main()
+int main(int argc, char* argv[])
 {
   printf("Advent of Code 2022: Starting up.\n");
 
