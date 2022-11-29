@@ -9,6 +9,7 @@ int main(int argc, char* argv[])
   //ParseInput(NULL, NULL);
   Program* program = NewProgram();
 
+  ParseDayData(program);
 
   printf("Press any key to continue!\n");
   getchar();

@@ -3,6 +3,8 @@ typedef struct
     char* m_dayName;
     char* m_fileName;
 
+    char** m_Data;
+    int m_DataLength;
     // execute func?
 } DayData;
 
@@ -16,3 +18,5 @@ typedef struct
 Program* NewProgram();
 void DeleteProgram(Program* const program);
 void AllocateDays(Program* const program);
+void ParseDayData(Program* const program);
+void ParseInputForDay(DayData* const dayData);
