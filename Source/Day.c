@@ -87,22 +87,36 @@ void ParseInputForDay(DayData* const dayData)
 
     if (file != NULL)
     {
+        const int STR_LEN = 99;
         char str[99];
         int i = 0;
 
-        while (fscanf(file, "%s", str) != EOF)
+        while (fgets(str, STR_LEN, file))
         {
             i++;
         }
         
-        dayData->m_DataLength = i + 1;
+        dayData->m_DataLength = i;
         rewind(file);
 
         dayData->m_Data = malloc(dayData->m_DataLength * sizeof(char*));
       
         i = 0;
-        while (fscanf(file, "%s", str) != EOF)
+        while (fgets(str, STR_LEN, file))
         {
+            for (int j = 0; j < STR_LEN; ++j)
+            {
+                if (str[j] == '\n')
+                {
+                    str[j] = '\0';
+                    break;
+                }
+                else if (str[j] == '\0')
+                {
+                    break;
+                }
+            }
+
             dayData->m_Data[i] = malloc(sizeof(str));
             strcpy(dayData->m_Data[i], str);
             i++;
@@ -116,7 +130,10 @@ void RunDay(Program* const program)
 {
     DayFuncPair* dayFuncPairs = CreateDayFuncPairList();
 
+    printf("Running day %i...\n", program->m_DayToRun);
+
     const int dayToRun = program->m_DayToRun - 1;
+
     if (dayFuncPairs[dayToRun].m_dayFunc1 != NULL)
     {
         dayFuncPairs[dayToRun].m_dayFunc1(&program->m_days[dayToRun]);
