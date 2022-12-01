@@ -1,12 +1,15 @@
+#include "Day.h"
+
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
 
-#include "Day.h"
+#include "DayLookup.h"
 
 Program* NewProgram()
 {
     Program* program = malloc(sizeof(Program));
+    program->m_DayToRun = 0;
     AllocateDays(program);
     return program;
 }
@@ -107,4 +110,22 @@ void ParseInputForDay(DayData* const dayData)
         
         fclose(file);
     }
+}
+
+void RunDay(Program* const program)
+{
+    DayFuncPair* dayFuncPairs = CreateDayFuncPairList();
+
+    const int dayToRun = program->m_DayToRun - 1;
+    if (dayFuncPairs[dayToRun].m_dayFunc1 != NULL)
+    {
+        dayFuncPairs[dayToRun].m_dayFunc1(&program->m_days[dayToRun]);
+    }
+    
+    if (dayFuncPairs[dayToRun].m_dayFunc2)
+    {
+        dayFuncPairs[dayToRun].m_dayFunc2(&program->m_days[dayToRun]);
+    }
+
+    FreeDayFuncPairList(dayFuncPairs);
 }

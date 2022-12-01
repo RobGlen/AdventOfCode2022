@@ -6,10 +6,13 @@ int main(int argc, char* argv[])
 {
   printf("Advent of Code 2022: Starting up.\n");
 
-  //ParseInput(NULL, NULL);
   Program* program = NewProgram();
 
   ParseDayData(program);
+
+  program->m_DayToRun = 2;
+
+  RunDay(program);
 
   printf("Press any key to continue!\n");
   getchar();

@@ -1,4 +1,7 @@
-typedef struct
+#ifndef __DAY_H__
+#define __DAY_H__
+
+typedef struct DayData
 {
     char* m_dayName;
     char* m_fileName;
@@ -10,9 +13,10 @@ typedef struct
 
 static const int NUM_OF_DAYS = 25;
 
-typedef struct
+typedef struct Program
 {    
     DayData* m_days;
+    int m_DayToRun;
 } Program;
 
 Program* NewProgram();
@@ -20,3 +24,7 @@ void DeleteProgram(Program* const program);
 void AllocateDays(Program* const program);
 void ParseDayData(Program* const program);
 void ParseInputForDay(DayData* const dayData);
+
+void RunDay(Program* const program);
+
+#endif
