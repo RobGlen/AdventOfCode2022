@@ -13,7 +13,7 @@ void ExecuteDay01_Part1(struct DayData* dayData)
 
     for (int i = 0; i < dayData->m_DataLength; ++i)
     {
-        if ((strcmp(dayData->m_Data[i], "") == 0) || (i == dayData->m_DataLength - 1))
+        if (strcmp(dayData->m_Data[i], "") == 0)
         {
             count = 0;
         }
