@@ -14,9 +14,7 @@ int main(int argc, char* argv[])
 
   RunDay(program);
 
-  printf("Press any key to continue!\n");
-  getchar();
-
   DeleteProgram(program);
+
   return 0;
 } 
