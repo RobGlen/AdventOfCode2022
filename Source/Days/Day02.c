@@ -25,9 +25,9 @@ typedef struct
 static const int RPS_SIZE = 3;
 static const RPSInfo rpsInfoList[3] = 
 {
-    { 'A', 'X', ROCK, -1 },
-    { 'B', 'Y', PAPER, 0 },
-    { 'C', 'Z', SCISSORS, 1 }
+    { 'A', 'X', 1, -1 },
+    { 'B', 'Y', 2, 0 },
+    { 'C', 'Z', 3, 1 }
 };
 
 
