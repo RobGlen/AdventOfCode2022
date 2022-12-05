@@ -1,6 +1,6 @@
- #include "Day05.h"
+#include "Day05.h"
 
- #include "../Day.h"
+#include "../Day.h"
 
 #include <string.h>
 #include <stdio.h>
@@ -73,15 +73,6 @@ void ParseCrates(DayData* const dayData, Crate** crateStack, Crate* allCrates, c
 			}
 
         }
-        /*while (dayData->m_Data[i][j + 1] != '\0')
-        {
-            if (dayData->m_Data[i][j - 1] == '[' && dayData->m_Data[i][j + 1] == ']')
-            {
-
-				++stackIndex;
-            }
-            ++j;
-        }*/
     }
 }
 
@@ -114,8 +105,6 @@ void ParseInstructions(DayData* dayData, Crate** crateStack, int instructionsSta
 
             dayData->m_Data[i][len] = '\0';
 
-			//char str[10];
-			//strcpy(str, dayData->m_Data[i] + j);
             rules[k] = atoi(str);
 
             j = len + 1;
@@ -280,5 +269,5 @@ void ExecuteDay05_Part1(DayData* dayData)
 
 void ExecuteDay05_Part2(DayData* dayData)
 {
-    SortoutCrates(dayData, TRUE);
+	SortoutCrates(dayData, TRUE);
 }
