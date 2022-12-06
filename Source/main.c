@@ -10,7 +10,7 @@ int main(int argc, char* argv[])
 
   ParseDayData(program);
 
-  program->m_DayToRun = 5;
+  program->m_DayToRun = 6;
 
   RunDay(program);
 

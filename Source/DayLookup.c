@@ -8,6 +8,7 @@
 #include "Days/Day03.h"
 #include "Days/Day04.h"
 #include "Days/Day05.h"
+#include "Days/Day06.h"
 
 DayFuncPair* CreateDayFuncPairList()
 {
@@ -33,6 +34,9 @@ DayFuncPair* CreateDayFuncPairList()
 
 	dayFuncPairs[4].m_dayFunc1 = &ExecuteDay05_Part1;
 	dayFuncPairs[4].m_dayFunc2 = &ExecuteDay05_Part2;
+
+	dayFuncPairs[5].m_dayFunc1 = &ExecuteDay06_Part1;
+	dayFuncPairs[5].m_dayFunc2 = &ExecuteDay06_Part2;
 
     return dayFuncPairs;
 }
