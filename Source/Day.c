@@ -87,8 +87,8 @@ void ParseInputForDay(DayData* const dayData)
 
     if (file != NULL)
     {
-        const int STR_LEN = 99;
-        char str[99];
+        const int STR_LEN = 5000;
+        char str[5000];
         int i = 0;
 
         while (fgets(str, STR_LEN, file))
