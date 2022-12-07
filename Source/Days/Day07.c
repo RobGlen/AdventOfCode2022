@@ -203,7 +203,7 @@ void ExecuteDay07_Part2(DayData* dayData)
     
     const int totalSpace = 70000000;
     const int freeUpTarget = 30000000;
-    const int sizeLeft = 70000000 - rootDir->size;
+    const int sizeLeft = totalSpace - rootDir->size;
     const int sizeToFreeUp = freeUpTarget - sizeLeft;
 
     Dir* smallestDirToFreeup = rootDir;
