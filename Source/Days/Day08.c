@@ -8,16 +8,10 @@
 
 void CompareAndCountTrees(const int treeToConsider, const int treeToCompare, int* tallestTree, int* treeCount, BOOL* shouldExit)
 {
-	/*if (treeToCompare >= (*tallestTree))
-	{
-		(*tallestTree) = treeToCompare;
-		(*treeCount)++;
-	}*/
-
-	if (treeToCompare >= treeToConsider)
-	{
+    if (treeToCompare >= treeToConsider)
+    {
         (*shouldExit) = TRUE;
-	}
+    }
 
     (*treeCount)++;
 }
@@ -30,7 +24,6 @@ void ExecuteDay08_Part1(DayData* dayData)
         ++width;
     }
 
-    //const int outerRimTrees = (width * 2) + ((dayData->m_DataLength - 2) * 2);
     int visibleTreesCount = 0;
 
     int* tallestHeightsOnTop = malloc(sizeof(int) * width);
@@ -61,8 +54,8 @@ void ExecuteDay08_Part1(DayData* dayData)
                 tallestHeightsOnTop[x] = tree;
                 if (!isVisibleFoundFromCached)
                 {
-					++visibleTreesCount;
-					printf("\x1B[32m%i", tree);
+                    ++visibleTreesCount;
+                    printf("\x1B[32m%i", tree);
                     isVisibleFoundFromCached = TRUE;
                 }
             }
@@ -90,20 +83,20 @@ void ExecuteDay08_Part1(DayData* dayData)
             }
             
             foundTallerTree = FALSE;
-			for (int i = x + 1; i < width; ++i)
-			{
-				if (tree <= dayData->m_Data[y][i] - '0')
-				{
-					foundTallerTree = TRUE;
-					break;
-				}
-			}
+            for (int i = x + 1; i < width; ++i)
+            {
+                if (tree <= dayData->m_Data[y][i] - '0')
+                {
+                    foundTallerTree = TRUE;
+                    break;
+                }
+            }
 
-			if (!foundTallerTree)
-			{
+            if (!foundTallerTree)
+            {
                 ++visibleTreesCount;
                 printf("\x1B[32m%i", tree);
-			}
+            }
             else
             {
                 printf("\x1B[31m%i", tree);
@@ -120,11 +113,11 @@ void ExecuteDay08_Part1(DayData* dayData)
 
 void ExecuteDay08_Part2(DayData* dayData)
 {
-	int width = 0;
-	while (dayData->m_Data[0][width] != '\0')
-	{
-		++width;
-	}
+    int width = 0;
+    while (dayData->m_Data[0][width] != '\0')
+    {
+        ++width;
+    }
 
     int heighestTreeScore = -1;
     for (int y = 0; y < dayData->m_DataLength - 0; ++y)
@@ -148,51 +141,43 @@ void ExecuteDay08_Part2(DayData* dayData)
             }
 
             tallestTree = -1;
-			for (int i = y + 1; i < dayData->m_DataLength; ++i)
-			{
-				const int currentTree = dayData->m_Data[i][x] - '0';
-				BOOL shouldExit = FALSE;
-				CompareAndCountTrees(tree, currentTree, &tallestTree, &treesFound[1], &shouldExit);
-
-				if (shouldExit)
-				{
-					break;
-				}
-			}
-
-            tallestTree = -1;
-			for (int i = x - 1; i >= 0; --i)
-			{
-				const int currentTree = dayData->m_Data[y][i] - '0';
-				BOOL shouldExit = FALSE;
-				CompareAndCountTrees(tree, currentTree, &tallestTree, &treesFound[2], &shouldExit);
-
-				if (shouldExit)
-				{
-					break;
-				}
-			}
-
-            tallestTree = -1;
-			for (int i = x + 1; i < width; ++i)
-			{
-				const int currentTree = dayData->m_Data[y][i] - '0';
-				BOOL shouldExit = FALSE;
-				CompareAndCountTrees(tree, currentTree, &tallestTree, &treesFound[3], &shouldExit);
-
-				if (shouldExit)
-				{
-					break;
-				}
-			}
-
-            /*for (int i = 0; i < 4; ++i)
+            for (int i = y + 1; i < dayData->m_DataLength; ++i)
             {
-                if (treesFound[i] == 0)
+                const int currentTree = dayData->m_Data[i][x] - '0';
+                BOOL shouldExit = FALSE;
+                CompareAndCountTrees(tree, currentTree, &tallestTree, &treesFound[1], &shouldExit);
+
+                if (shouldExit)
                 {
-                    treesFound[i] = 1;
+                    break;
                 }
-            }*/
+            }
+
+            tallestTree = -1;
+            for (int i = x - 1; i >= 0; --i)
+            {
+                const int currentTree = dayData->m_Data[y][i] - '0';
+                BOOL shouldExit = FALSE;
+                CompareAndCountTrees(tree, currentTree, &tallestTree, &treesFound[2], &shouldExit);
+
+                if (shouldExit)
+                {
+                    break;
+                }
+            }
+
+            tallestTree = -1;
+            for (int i = x + 1; i < width; ++i)
+            {
+                const int currentTree = dayData->m_Data[y][i] - '0';
+                BOOL shouldExit = FALSE;
+                CompareAndCountTrees(tree, currentTree, &tallestTree, &treesFound[3], &shouldExit);
+
+                if (shouldExit)
+                {
+                    break;
+                }
+            }
 
             const int treeScore = treesFound[0] * treesFound[1] * treesFound[2] * treesFound[3];
             if (treeScore > heighestTreeScore)
