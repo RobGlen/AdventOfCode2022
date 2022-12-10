@@ -13,12 +13,6 @@ typedef struct Command
     struct Command* next;
 } Command;
 
-typedef struct OpData
-{
-    //char str[8][40];
-    char** str;
-} OpData;
-
 typedef void (*OpFunc)(const int, void*);
 typedef void (*SignalFunc)(void*);
 
