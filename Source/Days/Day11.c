@@ -8,7 +8,6 @@
 typedef struct Item
 {
     unsigned long long worryLevel;
-    //unsigned usigned long long worryLevel;
     struct Item* next;
 } Item;
 
@@ -174,7 +173,6 @@ void ExecuteMonkeyBusiness(Monkey* const monkeys, const int numOfMonkeys, const 
 
                 const unsigned long long mod1 = item->worryLevel % currentMonkey->divisibleTest;
 
-                //for(int k; k < numOfMonkeys; ++k)
                 item->worryLevel %= lcm;
 
                 const unsigned long long mod2 = item->worryLevel % currentMonkey->divisibleTest;
