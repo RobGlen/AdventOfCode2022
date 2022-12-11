@@ -1,20 +1,24 @@
 #include <stdio.h>
+#include <stdlib.h>
 
 #include "Day.h"
 
 int main(int argc, char* argv[])
 {
-  printf("Advent of Code 2022: Starting up.\n");
+    printf("Advent of Code 2022: Starting up.\n");
 
-  Program* program = NewProgram();
+    Program* program = NewProgram();
 
-  ParseDayData(program);
+    ParseDayData(program);
 
-  program->m_DayToRun = 10;
+    if (argc >= 2)
+    {
+        program->m_DayToRun = atoi(argv[1]);
+    }
 
-  RunDay(program);
+    RunDay(program);
 
-  DeleteProgram(program);
+    DeleteProgram(program);
 
-  return 0;
+    return 0;
 } 

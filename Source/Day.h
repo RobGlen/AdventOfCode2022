@@ -16,6 +16,7 @@ typedef struct DayData
 } DayData;
 
 static const int NUM_OF_DAYS = 25;
+static const int RUN_ALL_DAYS = -1;
 
 typedef struct Program
 {    

@@ -9,7 +9,7 @@
 Program* NewProgram()
 {
     Program* program = malloc(sizeof(Program));
-    program->m_DayToRun = 0;
+    program->m_DayToRun = RUN_ALL_DAYS;
     AllocateDays(program);
     return program;
 }
@@ -130,18 +130,34 @@ void RunDay(Program* const program)
 {
     DayFuncPair* dayFuncPairs = CreateDayFuncPairList();
 
-    printf("Running day %i...\n", program->m_DayToRun);
+    int startIndex = 0;
+    int endIndex = NUM_OF_DAYS;
 
-    const int dayToRun = program->m_DayToRun - 1;
-
-    if (dayFuncPairs[dayToRun].m_dayFunc1 != NULL)
+    if (program->m_DayToRun != RUN_ALL_DAYS)
     {
-        dayFuncPairs[dayToRun].m_dayFunc1(&program->m_days[dayToRun]);
+        startIndex = program->m_DayToRun - 1;
+        endIndex = startIndex + 1;
     }
-    
-    if (dayFuncPairs[dayToRun].m_dayFunc2)
+    else
     {
-        dayFuncPairs[dayToRun].m_dayFunc2(&program->m_days[dayToRun]);
+        printf("Running all days...\n\n");
+    }
+
+    for (int i = startIndex; i < endIndex; ++i)
+    {
+        printf("Running day %i...\n", i + 1);
+
+        if (dayFuncPairs[i].m_dayFunc1 != NULL)
+        {
+            dayFuncPairs[i].m_dayFunc1(&program->m_days[i]);
+        }
+        
+        if (dayFuncPairs[i].m_dayFunc2 != NULL)
+        {
+            dayFuncPairs[i].m_dayFunc2(&program->m_days[i]);
+        }
+
+        printf("\n");
     }
 
     FreeDayFuncPairList(dayFuncPairs);
