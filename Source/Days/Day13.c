@@ -269,34 +269,26 @@ BOOL CompareElement(PacketElement* left, PacketElement* right, BOOL* isRightOrde
         return FALSE;
     }
 
-    if ((left->list == NULL) && (right->list == NULL) && (left->value != right->value))
+    // if (!isList && (left->list != NULL || right->list != NULL))
+    // {
+    //     return FALSE;
+    // }
+
+    if ((left->value != right->value) && (left->value != -1 || left->list == NULL) && (right->value != -1 || right->list == NULL))
     {
         (*isRightOrder) = left->value < right->value;
         return TRUE;
     }
 
-    if (isList)
+    //if (isList)
     {
-        // if (left->value == right->value)
-        // {
-        //     const BOOL isLeftCorrect = left->parent == NULL || left->parent->listLength <= 1;
-        //     const BOOL isRightCorrect = right->parent == NULL || right->parent->listLength >= 1;
-            
-        //     if (isLeftCorrect || isRightCorrect)
-        //     {
-        //         (*isRightOrder)
-        //     }
-                
-        //     return TRUE;
-        // }
-
-        if (left->parent != NULL && left->value == right->value && left->parent->listLength != 1)
+        if (left->parent != NULL && right->parent == NULL && left->value <= right->value && left->parent->listLength != 1)
         {
             (*isRightOrder) = left->parent->listLength < 1;
             return TRUE;
         }
 
-        if (right->parent != NULL && left->value == right->value && right->parent->listLength != 1)
+        if (right->parent != NULL && left->parent == NULL&& left->value <= right->value && right->parent->listLength != 1)
         {
             (*isRightOrder) = right->parent->listLength > 1;
             return TRUE;
