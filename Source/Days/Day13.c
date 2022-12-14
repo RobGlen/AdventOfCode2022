@@ -22,6 +22,13 @@ typedef struct PacketPair
     PacketElement* secondPacket;
 } PacketPair;
 
+typedef struct Packet
+{
+    PacketElement* packet;
+    struct Packet* prev;
+    struct Packet* next;
+} Packet;
+
 void InitPacketElement(PacketElement* const element)
 {
     element->value = -1;
@@ -36,6 +43,13 @@ void InitPacketPair(PacketPair* const packetPair)
 {
     packetPair->firstPacket = NULL;    
     packetPair->secondPacket = NULL;
+}
+
+void InitPacket(Packet* const packet)
+{
+    packet->packet = NULL;
+    packet->prev = NULL;
+    packet->next = NULL;
 }
 
 void FreePackets(PacketElement* element)
@@ -197,10 +211,10 @@ void ParsePackets(DayData* const dayData, PacketPair* const packets)
 
 BOOL CompareElement(PacketElement* left, PacketElement* right, BOOL* isRightOrder)
 {
-    // PrintTree(left);
-    // printf("\n");
-    // PrintTree(right);
-    // printf("\n\n");
+    //PrintTree(left);
+    //printf("\n");
+    //PrintTree(right);
+    //printf("\n\n");
 
     if (left == NULL || right == NULL)
     {
@@ -233,7 +247,7 @@ BOOL CompareElement(PacketElement* left, PacketElement* right, BOOL* isRightOrde
 
         if (left->list->isList)
         {
-            return FALSE;//CompareElement(left->list, right, isRightOrder);
+            return CompareElement(left->list, right, isRightOrder);
         }
 
         if (left->list->value != right->value)
@@ -260,7 +274,7 @@ BOOL CompareElement(PacketElement* left, PacketElement* right, BOOL* isRightOrde
 
         if (right->list->isList)
         {
-            return FALSE;//CompareElement(left, right->list, isRightOrder);
+            return CompareElement(left, right->list, isRightOrder);
         }
 
         if (left->value != right->list->value)
@@ -300,21 +314,21 @@ BOOL ComparePacketElement(PacketElement* left, PacketElement* right, BOOL* isRig
         }
     }
 
-    // if (!left->isList && right->isList)
-    // {
-    //     if (CompareElement(left, right->list, isRightOrder))
-    //     {
-    //         return TRUE;
-    //     }
-    // }
+     if (!left->isList && right->isList)
+     {
+         if (CompareElement(left->next, right->list, isRightOrder))
+         {
+             return TRUE;
+         }
+     }
 
-    // if (left->isList && !right->isList)
-    // {
-    //     if (CompareElement(left->list, right, isRightOrder))
-    //     {
-    //         return TRUE;
-    //     }
-    // }
+     if (left->isList && !right->isList)
+     {
+         if (CompareElement(left->list, right->next, isRightOrder))
+         {
+             return TRUE;
+         }
+     }
 
     return ComparePacketElement(left->next, right->next, isRightOrder);
 }
@@ -324,29 +338,114 @@ int ProcessPackets(PacketPair* const packets, const int length)
     int sumOfIndices = 0;
     for (int i = 0; i < length; ++i)
     {
-        printf("%i:\n", i + 1);
+        //printf("%i:\n", i + 1);
         BOOL isRightOrder = FALSE;
         ComparePacketElement(packets[i].firstPacket, packets[i].secondPacket, &isRightOrder);
         if (isRightOrder)
         {
             printf("%i is in right order\n", i + 1);
-            PrintTree(packets[i].firstPacket);
-            printf("\n");
-            PrintTree(packets[i].secondPacket);
-            printf("\n\n");
+            //PrintTree(packets[i].firstPacket);
+            //printf("\n");
+            //PrintTree(packets[i].secondPacket);
+            //printf("\n\n");
             sumOfIndices += i + 1;
         }
         else
         {
             printf("%i is wrong:\n", i + 1);
-            PrintTree(packets[i].firstPacket);
-            printf("\n");
-            PrintTree(packets[i].secondPacket);
-            printf("\n\n");
+            //PrintTree(packets[i].firstPacket);
+            //printf("\n");
+            //PrintTree(packets[i].secondPacket);
+            //printf("\n\n");
         }
     }
 
     return sumOfIndices;
+}
+
+Packet* SortPacket(Packet* const currentPacket, Packet* const packetToAdd, BOOL* shouldAddAfter)
+{
+	if (currentPacket == NULL)
+	{
+		return NULL;
+	}
+
+	BOOL isPacketAfter = FALSE;
+	ComparePacketElement(currentPacket->packet, packetToAdd->packet, &isPacketAfter);
+
+	if (isPacketAfter)
+	{
+		Packet* packet = SortPacket(currentPacket->next, packetToAdd, shouldAddAfter);
+		if (packet != NULL)
+		{
+			return packet;
+		}
+		else
+		{
+			(*shouldAddAfter) = TRUE;
+			return currentPacket;
+		}
+	}
+	else
+	{
+		(*shouldAddAfter) = FALSE;
+		return currentPacket;
+	}
+}
+
+void InsertPacket(Packet** head, Packet* const newPacket, PacketElement* const packetElement)
+{
+	InitPacket(newPacket);
+	newPacket->packet = packetElement;
+
+	BOOL shouldAddAfter = FALSE;
+	Packet* packetToConnectTo = SortPacket(*head, newPacket, &shouldAddAfter);
+
+	if (shouldAddAfter)
+	{
+		packetToConnectTo->next = newPacket;
+		newPacket->prev = packetToConnectTo;
+	}
+	else
+	{
+		Packet* prevPacket = packetToConnectTo->prev;
+		if (packetToConnectTo != (*head))
+		{
+			prevPacket->next = newPacket;
+		}
+		else
+		{
+			(*head) = newPacket;
+		}
+		newPacket->next = packetToConnectTo;
+        newPacket->prev = prevPacket;
+		packetToConnectTo->prev = newPacket;
+	}
+}
+
+Packet* ProcessAndSortPackets(Packet* packetsPool, PacketPair* packetPairs, const int packetsLength)
+{
+    printf("Sorting packets...\n");
+	int currentPacketIndex = 0;
+	Packet* head = &packetsPool[currentPacketIndex++];
+	InitPacket(head);
+	Packet* currentPacket = head;
+	for (int i = 0; i < packetsLength; ++i)
+	{
+        printf("Sorting packet %i.\n", i);
+		if (head->packet == NULL)
+		{
+			head->packet = packetPairs[i].firstPacket;
+		}
+		else
+		{
+			InsertPacket(&head, &packetsPool[currentPacketIndex++], packetPairs[i].firstPacket);
+        }
+
+        InsertPacket(&head, &packetsPool[currentPacketIndex++], packetPairs[i].secondPacket);
+	}
+
+	return head;
 }
 
 void ExecuteDay13_Part1(DayData* dayData)
@@ -368,5 +467,48 @@ void ExecuteDay13_Part1(DayData* dayData)
 
 void ExecuteDay13_Part2(DayData* dayData)
 {
-   
+	const int originalPacketsLength = (dayData->m_DataLength / 3) + 1;
+    const int packetsLength = originalPacketsLength + 1;
+	PacketPair* packetPairs = malloc(sizeof(PacketPair) * packetsLength);
+	ParsePackets(dayData, packetPairs);
+
+	PacketPair* const dividerPackets = &packetPairs[packetsLength - 1];
+	InitPacketPair(dividerPackets);
+
+	ParsePacket("[[2]]", &dividerPackets->firstPacket);
+	ParsePacket("[[6]]", &dividerPackets->secondPacket);
+
+    Packet* packets = malloc(sizeof(Packet) * packetsLength * 2);
+
+    Packet* head = ProcessAndSortPackets(packets, packetPairs, packetsLength);
+
+    int i = 0;
+    int i2 = 0;
+    int i6 = 0;
+    while (head != NULL)
+    {
+        PrintTree(head->packet);
+        printf("\n");
+        if (head->packet == dividerPackets->firstPacket)
+        {
+            i2 = i + 1;
+        }
+        else if (head->packet == dividerPackets->secondPacket)
+        {
+            i6 = i + 1;
+        }
+
+        head = head->next;
+        ++i;
+    }
+
+    printf("decoder key: %i\n", i2 * i6);
+
+    free(packets);
+	for (int i = 0; i < packetsLength; ++i)
+	{
+		FreePackets(packetPairs[i].firstPacket);
+		FreePackets(packetPairs[i].secondPacket);
+	}
+	free(packetPairs);
 }
