@@ -365,87 +365,87 @@ int ProcessPackets(PacketPair* const packets, const int length)
 
 Packet* SortPacket(Packet* const currentPacket, Packet* const packetToAdd, BOOL* shouldAddAfter)
 {
-	if (currentPacket == NULL)
-	{
-		return NULL;
-	}
+    if (currentPacket == NULL)
+    {
+        return NULL;
+    }
 
-	BOOL isPacketAfter = FALSE;
-	ComparePacketElement(currentPacket->packet, packetToAdd->packet, &isPacketAfter);
+    BOOL isPacketAfter = FALSE;
+    ComparePacketElement(currentPacket->packet, packetToAdd->packet, &isPacketAfter);
 
-	if (isPacketAfter)
-	{
-		Packet* packet = SortPacket(currentPacket->next, packetToAdd, shouldAddAfter);
-		if (packet != NULL)
-		{
-			return packet;
-		}
-		else
-		{
-			(*shouldAddAfter) = TRUE;
-			return currentPacket;
-		}
-	}
-	else
-	{
-		(*shouldAddAfter) = FALSE;
-		return currentPacket;
-	}
+    if (isPacketAfter)
+    {
+        Packet* packet = SortPacket(currentPacket->next, packetToAdd, shouldAddAfter);
+        if (packet != NULL)
+        {
+            return packet;
+        }
+        else
+        {
+            (*shouldAddAfter) = TRUE;
+            return currentPacket;
+        }
+    }
+    else
+    {
+        (*shouldAddAfter) = FALSE;
+        return currentPacket;
+    }
 }
 
 void InsertPacket(Packet** head, Packet* const newPacket, PacketElement* const packetElement)
 {
-	InitPacket(newPacket);
-	newPacket->packet = packetElement;
+    InitPacket(newPacket);
+    newPacket->packet = packetElement;
 
-	BOOL shouldAddAfter = FALSE;
-	Packet* packetToConnectTo = SortPacket(*head, newPacket, &shouldAddAfter);
+    BOOL shouldAddAfter = FALSE;
+    Packet* packetToConnectTo = SortPacket(*head, newPacket, &shouldAddAfter);
 
-	if (shouldAddAfter)
-	{
-		packetToConnectTo->next = newPacket;
-		newPacket->prev = packetToConnectTo;
-	}
-	else
-	{
-		Packet* prevPacket = packetToConnectTo->prev;
-		if (packetToConnectTo != (*head))
-		{
-			prevPacket->next = newPacket;
-		}
-		else
-		{
-			(*head) = newPacket;
-		}
-		newPacket->next = packetToConnectTo;
+    if (shouldAddAfter)
+    {
+        packetToConnectTo->next = newPacket;
+        newPacket->prev = packetToConnectTo;
+    }
+    else
+    {
+        Packet* prevPacket = packetToConnectTo->prev;
+        if (packetToConnectTo != (*head))
+        {
+            prevPacket->next = newPacket;
+        }
+        else
+        {
+            (*head) = newPacket;
+        }
+        newPacket->next = packetToConnectTo;
         newPacket->prev = prevPacket;
-		packetToConnectTo->prev = newPacket;
-	}
+        packetToConnectTo->prev = newPacket;
+    }
 }
 
 Packet* ProcessAndSortPackets(Packet* packetsPool, PacketPair* packetPairs, const int packetsLength)
 {
     printf("Sorting packets...\n");
-	int currentPacketIndex = 0;
-	Packet* head = &packetsPool[currentPacketIndex++];
-	InitPacket(head);
-	Packet* currentPacket = head;
-	for (int i = 0; i < packetsLength; ++i)
-	{
+    int currentPacketIndex = 0;
+    Packet* head = &packetsPool[currentPacketIndex++];
+    InitPacket(head);
+    Packet* currentPacket = head;
+    for (int i = 0; i < packetsLength; ++i)
+    {
         printf("Sorting packet %i.\n", i);
-		if (head->packet == NULL)
-		{
-			head->packet = packetPairs[i].firstPacket;
-		}
-		else
-		{
-			InsertPacket(&head, &packetsPool[currentPacketIndex++], packetPairs[i].firstPacket);
+        if (head->packet == NULL)
+        {
+            head->packet = packetPairs[i].firstPacket;
+        }
+        else
+        {
+            InsertPacket(&head, &packetsPool[currentPacketIndex++], packetPairs[i].firstPacket);
         }
 
         InsertPacket(&head, &packetsPool[currentPacketIndex++], packetPairs[i].secondPacket);
-	}
+    }
 
-	return head;
+    return head;
 }
 
 void ExecuteDay13_Part1(DayData* dayData)
@@ -467,16 +467,16 @@ void ExecuteDay13_Part1(DayData* dayData)
 
 void ExecuteDay13_Part2(DayData* dayData)
 {
-	const int originalPacketsLength = (dayData->m_DataLength / 3) + 1;
+    const int originalPacketsLength = (dayData->m_DataLength / 3) + 1;
     const int packetsLength = originalPacketsLength + 1;
-	PacketPair* packetPairs = malloc(sizeof(PacketPair) * packetsLength);
-	ParsePackets(dayData, packetPairs);
+    PacketPair* packetPairs = malloc(sizeof(PacketPair) * packetsLength);
+    ParsePackets(dayData, packetPairs);
 
-	PacketPair* const dividerPackets = &packetPairs[packetsLength - 1];
-	InitPacketPair(dividerPackets);
+    PacketPair* const dividerPackets = &packetPairs[packetsLength - 1];
+    InitPacketPair(dividerPackets);
 
-	ParsePacket("[[2]]", &dividerPackets->firstPacket);
-	ParsePacket("[[6]]", &dividerPackets->secondPacket);
+    ParsePacket("[[2]]", &dividerPackets->firstPacket);
+    ParsePacket("[[6]]", &dividerPackets->secondPacket);
 
     Packet* packets = malloc(sizeof(Packet) * packetsLength * 2);
 
@@ -505,10 +505,10 @@ void ExecuteDay13_Part2(DayData* dayData)
     printf("decoder key: %i\n", i2 * i6);
 
     free(packets);
-	for (int i = 0; i < packetsLength; ++i)
-	{
-		FreePackets(packetPairs[i].firstPacket);
-		FreePackets(packetPairs[i].secondPacket);
-	}
-	free(packetPairs);
+    for (int i = 0; i < packetsLength; ++i)
+    {
+        FreePackets(packetPairs[i].firstPacket);
+        FreePackets(packetPairs[i].secondPacket);
+    }
+    free(packetPairs);
 }
