@@ -13,6 +13,7 @@ typedef struct PacketElement
     struct PacketElement* list;
     struct PacketElement* parent;
     int listLength;
+    BOOL isList;
 } PacketElement;
 
 typedef struct PacketPair
@@ -28,15 +29,13 @@ void InitPacketElement(PacketElement* const element)
     element->list = NULL;
     element->parent = NULL;
     element->listLength = 0;
+    element->isList = FALSE;
 }
 
 void InitPacketPair(PacketPair* const packetPair)
 {
-    packetPair->firstPacket = malloc(sizeof(PacketElement));
-    packetPair->secondPacket = malloc(sizeof(PacketElement));
-
-    InitPacketElement(packetPair->firstPacket);
-    InitPacketElement(packetPair->secondPacket);
+    packetPair->firstPacket = NULL;    
+    packetPair->secondPacket = NULL;
 }
 
 void FreePackets(PacketElement* element)
@@ -63,48 +62,55 @@ void PrintTree(PacketElement* element)
         return;
     }
 
-    if (element->list != NULL)
+    if (element->isList)
     {
         printf("(");
     }
 
     if (element->value != -1)
     {
-        printf("%i,", element->value);
+        printf("%i", element->value);
     }
 
     PrintTree(element->list);
 
-    if (element->list != NULL)
+    if (element->isList)
     {
         printf(")");
+    }
+
+    if (element->next != NULL)
+    {
+        printf(",");
     }
 
     PrintTree(element->next);
 }
 
-void ParsePacket(char* const str, PacketElement* rootElement)
+void ParsePacket(char* const str, PacketElement** rootElement)
 {
-    PacketElement* currentElement = rootElement;
+    PacketElement* currentElement = *rootElement;
+    PacketElement* currentList = NULL;
     int i = 0;
     BOOL wasLastItemList = FALSE;
     while(str[i] != '\0')
     {
         if (str[i] >= '0' && str[i] <= '9')
         {
-            char* newStr = strdup(str);
+            char* newStr = strdup(str + i);
             strtok(newStr, ",");
             strtok(newStr, "]");
             
-            PacketElement* newNumElement = NULL;
+            PacketElement* newNumElement = malloc(sizeof(PacketElement));
+            InitPacketElement(newNumElement);
+
             if (wasLastItemList)
             {
-                newNumElement = currentElement;
+                currentElement->list = newNumElement;    
+                newNumElement->parent = currentElement;
             }
             else
             {
-                newNumElement = malloc(sizeof(PacketElement));
-                InitPacketElement(newNumElement);
                 currentElement->next = newNumElement;    
                 newNumElement->parent = currentElement->parent;
             }
@@ -114,12 +120,9 @@ void ParsePacket(char* const str, PacketElement* rootElement)
                 newNumElement->parent->listLength++;
             }
 
-            newNumElement->value = atoi(newStr + i);
+            newNumElement->value = atoi(newStr);
 
-            if (currentElement->next)
-            {
-                currentElement = currentElement->next;    
-            }
+            currentElement = newNumElement;
 
             wasLastItemList = FALSE;
 
@@ -131,49 +134,52 @@ void ParsePacket(char* const str, PacketElement* rootElement)
         }
         else if (str[i] == '[')
         {
-            PacketElement* newListElement = malloc(sizeof(PacketElement));
-            InitPacketElement(newListElement);
-
-            //newListElement->list = malloc(sizeof(PacketElement));
-            //InitPackeInitPacketPairtElement(newListElement->list);
-            if (currentElement->value != -1)
+            PacketElement* newElement = malloc(sizeof(PacketElement));
+            InitPacketElement(newElement);
+            if (currentElement == NULL)
             {
-                PacketElement* newElement = malloc(sizeof(PacketElement));
-                InitPacketElement(newElement);
+                currentElement = newElement;
+                (*rootElement) = currentElement;
+            }
+            else if (wasLastItemList)
+            {
+                currentElement->list = newElement;
+                newElement->parent = currentElement;
+            }
+            else
+            {
                 currentElement->next = newElement;
                 newElement->parent = currentElement->parent;
-                currentElement = currentElement->next;
             }
-            
-            currentElement->list = newListElement;
-            newListElement->parent = currentElement;
 
-            //currentElement->next = newListElement;
-
-            currentElement = newListElement;
+            if (newElement->parent != NULL)
+            {
+                newElement->parent->listLength++;
+            }
+                 
+            currentElement = newElement;
+            currentElement->isList = TRUE;
             wasLastItemList = TRUE;
+            currentList = currentElement;
         }
         else if (str[i] == ']')
         {
-            if (currentElement != NULL)
+            if (currentElement != NULL && !currentElement->isList || currentElement->list != NULL)
             {
-                currentElement = currentElement->parent;
-                if (currentElement != NULL && (str[i + 1] == ','))
+                if (currentElement->parent != NULL)
                 {
-                    PacketElement* newElement = malloc(sizeof(PacketElement));
-                    InitPacketElement(newElement);
-                    currentElement->next = newElement;
-                    newElement->parent = currentElement->parent;
-                    currentElement = currentElement->next;
-                    wasLastItemList = TRUE;
+                    currentElement = currentElement->parent;
                 }
             }
+            wasLastItemList = FALSE;
         }
         
         ++i;
         //PrintTree(rootElement);
         //printf("\n");
     }
+    //PrintTree(*rootElement);
+    //printf("\n\n");
 }
 
 void ParsePackets(DayData* const dayData, PacketPair* const packets)
@@ -184,80 +190,18 @@ void ParsePackets(DayData* const dayData, PacketPair* const packets)
         PacketPair* const packetPair = &packets[packetPairIndex];
         InitPacketPair(packetPair);
 
-        ParsePacket(dayData->m_Data[i], packetPair->firstPacket);
-        ParsePacket(dayData->m_Data[i + 1], packetPair->secondPacket);
+        ParsePacket(dayData->m_Data[i], &packetPair->firstPacket);
+        ParsePacket(dayData->m_Data[i + 1], &packetPair->secondPacket);
     }
 }
 
-//void ComparePacketElement(PacketElement* left, PacketElement* right, BOOL* isRightOrder)
-// {
-//     if (left == NULL || right == NULL)
-//     {
-//         (*isRightOrder) = left == NULL && right != NULL;
-//         if (left != NULL && right == NULL)
-//         {
-//             (*isRightOrder) = FALSE;
-//         }
-
-//         return;
-//     }
-
-//     if (left->value != -1 && right->value != -1)
-//     {
-//         if (left->value != right->value)
-//         {
-//             (*isRightOrder) = left->value < right->value;
-//             return;
-//         }
-
-//         if (left->value > right->value)
-//         {
-//             (*isRightOrder) = FALSE;
-//             return;
-//         }
-//     }
-
-//     if (left->parent != NULL && left->next == NULL && right->next != NULL)
-//     {
-//         (*isRightOrder) = TRUE;
-//     }
-
-//     if (left->list != NULL && right->list != NULL)
-//     {
-//         ComparePacketElement(left->list, right->list, isRightOrder);
-//     }
-
-//     if (left->value != -1 && right->list != NULL)
-//     {
-//         ComparePacketElement(left, right->list, isRightOrder);
-//     }
-
-//     if (left->list != NULL && right->value != -1)
-//     {
-//         ComparePacketElement(left->list, right, isRightOrder);
-//     }
-
-//     if (left->list != NULL && right->next)
-//     {
-
-//     }
-
-//     ComparePacketElement(left->list, right->list, isRightOrder);
-//     ComparePacketElement(left, right->list, isRightOrder);
-//     ComparePacketElement(left->list, right, isRightOrder);
-
-//     if (left->list != NULL && right->list == NULL)
-//     {
-//         (*isRightOrder) = FALSE;
-//         return;
-//     })
-
-
-//     ComparePacketElement(left->next, right->next, isRightOrder);
-// }
-
-BOOL CompareElement(PacketElement* left, PacketElement* right, BOOL* isRightOrder, BOOL isList)
+BOOL CompareElement(PacketElement* left, PacketElement* right, BOOL* isRightOrder)
 {
+    // PrintTree(left);
+    // printf("\n");
+    // PrintTree(right);
+    // printf("\n\n");
+
     if (left == NULL || right == NULL)
     {
         if (left != right)
@@ -269,48 +213,78 @@ BOOL CompareElement(PacketElement* left, PacketElement* right, BOOL* isRightOrde
         return FALSE;
     }
 
-    // if (!isList && (left->list != NULL || right->list != NULL))
-    // {
-    //     return FALSE;
-    // }
-
-    if ((left->value != right->value) && (left->value != -1 || left->list == NULL) && (right->value != -1 || right->list == NULL))
+    if(!left->isList && !right->isList)
     {
-        (*isRightOrder) = left->value < right->value;
-        return TRUE;
+        if(left->value != right->value)
+        {
+            (*isRightOrder) = left->value < right->value;
+            return TRUE;
+        }
+        
     }
 
-    //if (isList)
+    if(left->isList && !right->isList)
     {
-        if (left->parent != NULL && right->parent == NULL && left->value <= right->value && left->parent->listLength != 1)
+        if (left->list == NULL)
         {
-            (*isRightOrder) = left->parent->listLength < 1;
+            (*isRightOrder) = TRUE;
             return TRUE;
         }
 
-        if (right->parent != NULL && left->parent == NULL&& left->value <= right->value && right->parent->listLength != 1)
+        if (left->list->isList)
         {
-            (*isRightOrder) = right->parent->listLength > 1;
+            return FALSE;//CompareElement(left->list, right, isRightOrder);
+        }
+
+        if (left->list->value != right->value)
+        {
+            (*isRightOrder) = left->list->value < right->value;
             return TRUE;
         }
+
+        if(left->list->value == right->value && left->listLength != 1)
+        {
+            (*isRightOrder) = left->listLength < 1;
+            return TRUE;
+        }
+        
     }
-    // if (left->parent != NULL && right->parent != NULL)
-    // {
-    //     if (left->parent->listLength != right->parent->listLength)
-    //     {
-    //         (*isRightOrder) = left->parent->listLength < right->parent->listLength;
-    //         return TRUE;
-    //     }
-    // }
+
+    if(!left->isList && right->isList)
+    {
+        if (right->list == NULL)
+        {
+            (*isRightOrder) = FALSE;
+            return TRUE;
+        }
+
+        if (right->list->isList)
+        {
+            return FALSE;//CompareElement(left, right->list, isRightOrder);
+        }
+
+        if (left->value != right->list->value)
+        {
+            (*isRightOrder) = left->value < right->list->value;
+            return TRUE;
+        }
+
+        if(left->value == right->list->value && right->listLength != 1)
+        {
+            (*isRightOrder) = right->listLength > 1;
+            return TRUE;
+        }
+        
+    }
 
     return FALSE;
 }
 
 BOOL ComparePacketElement(PacketElement* left, PacketElement* right, BOOL* isRightOrder)
 {
-    if (CompareElement(left, right, isRightOrder, FALSE))
+    if (CompareElement(left, right, isRightOrder))
     {
-         return TRUE;
+        return TRUE;
     }
 
     if (left == NULL || right == NULL)
@@ -318,7 +292,7 @@ BOOL ComparePacketElement(PacketElement* left, PacketElement* right, BOOL* isRig
         return FALSE;
     }
 
-    if (left->list != NULL && right->list != NULL)
+    if (left->isList && right->isList)
     {
         if (ComparePacketElement(left->list, right->list, isRightOrder))
         {
@@ -326,21 +300,21 @@ BOOL ComparePacketElement(PacketElement* left, PacketElement* right, BOOL* isRig
         }
     }
 
-    if (left->value != -1 && right->list != NULL)
-    {
-        if (CompareElement(left, right->list, isRightOrder, TRUE))
-        {
-            return TRUE;
-        }
-    }
+    // if (!left->isList && right->isList)
+    // {
+    //     if (CompareElement(left, right->list, isRightOrder))
+    //     {
+    //         return TRUE;
+    //     }
+    // }
 
-    if (left->list != NULL && right->value != -1)
-    {
-        if (CompareElement(left->list, right, isRightOrder, TRUE))
-        {
-            return TRUE;
-        }
-    }
+    // if (left->isList && !right->isList)
+    // {
+    //     if (CompareElement(left->list, right, isRightOrder))
+    //     {
+    //         return TRUE;
+    //     }
+    // }
 
     return ComparePacketElement(left->next, right->next, isRightOrder);
 }
@@ -350,6 +324,7 @@ int ProcessPackets(PacketPair* const packets, const int length)
     int sumOfIndices = 0;
     for (int i = 0; i < length; ++i)
     {
+        printf("%i:\n", i + 1);
         BOOL isRightOrder = FALSE;
         ComparePacketElement(packets[i].firstPacket, packets[i].secondPacket, &isRightOrder);
         if (isRightOrder)
