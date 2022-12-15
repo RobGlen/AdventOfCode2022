@@ -6,7 +6,9 @@
 #include <stdio.h>
 #include <stdlib.h>
 
-static const int CAVE_BITFIELD_SIZE = 8;
+#define BITFIELD 2000
+static const int CAVE_BITFIELD_SIZE = BITFIELD;
+static const int PRINT_REGULARITY = 1000;
 
 typedef struct Pos
 {
@@ -31,7 +33,7 @@ unsigned long long Szudzik(const Pos pos)
 PairedPos PairPos(const Pos pos)
 {
     unsigned long long szudzik = Szudzik(pos);
-    const PairedPos pairedPos = { (unsigned long long)1 << (szudzik), szudzik / 64 };
+    const PairedPos pairedPos = { (unsigned long long)1 << (szudzik), (int)(szudzik / 64) };
     return pairedPos;
 }
 
@@ -68,26 +70,29 @@ BOOL PlacePos(const Pos pos, unsigned long long* bitfield)
     return FALSE;
 }
 
-void ParseVectors(char* const str, unsigned long long* caveBitfield, int* escapeZone, int* largestOffset)
+void ParseVectors(char* const str, unsigned long long* caveBitfield, int* escapeZone, int* lowestWidth, int* highestWidth)
 {
-    // YOU NEED TO ITERATE THROUGH THE POINTS YOU FOOL.
     int start = 0;
     int i = 0;
+    int arrowCount = 0;
+    Pos lastPos = { 0, 0 };
+    
     while(str[i] != '\0')
     {
         const char* arrowStr = strstr(str + i, "->");
-        if ((str + i) == arrowStr)
+        if ((str + i) == arrowStr || str[i + 1] == '\0')
         {
             char* newStr = strdup(str + start);
-            strtok(newStr + start, "->");
+            strtok(newStr, "->");
 
-            int commaPos = start;
-            for(commaPos; commaPos < i; ++commaPos)
+            int commaPos = 0;
+            while(newStr[commaPos] != '\0')
             {
                 if (newStr[commaPos] == ',')
                 {
                     break;
                 }
+                ++commaPos;
             }
 
             strtok(newStr, ",");
@@ -101,38 +106,89 @@ void ParseVectors(char* const str, unsigned long long* caveBitfield, int* escape
                 (*escapeZone) = pos.y;
             }
 
-            PairedPos pairedPos = PairPos(pos);
-
-            if (pairedPos.pairingArrayOffset > (*largestOffset))
+            if (pos.x > (*highestWidth))
             {
-                (*largestOffset) = pairedPos.pairingArrayOffset;
+                (*highestWidth) = pos.x;
             }
+			else if (pos.x < (*lowestWidth))
+			{
+				(*lowestWidth) = pos.x;
+			}
 
-           //[cantorArrayOffset]
-            if (!(caveBitfield[pairedPos.pairingArrayOffset] & pairedPos.x))
+
+            if (lastPos.x != 0 && lastPos.y != 0)
             {
-                //[cantorArrayOffset]
-                caveBitfield[pairedPos.pairingArrayOffset] |= pairedPos.x;
+				Pos delta;
+				delta.x = pos.x - lastPos.x;
+				delta.y = pos.y - lastPos.y;
+                delta.x = (delta.x != 0) ? (delta.x / abs(delta.x)) : delta.x;
+                delta.y = (delta.y != 0) ? (delta.y / abs(delta.y)) : delta.y;
+
+                printf("%i,%i -> ", lastPos.x + 500, lastPos.y);
+
+                while (lastPos.x != pos.x || lastPos.y != pos.y)
+                {
+                    PlacePos(lastPos, caveBitfield);
+
+                    lastPos.x += delta.x;
+                    lastPos.y += delta.y;
+                }
+                PlacePos(lastPos, caveBitfield);
+                arrowCount++;
+
+                printf("%i,%i\n", lastPos.x + 500, lastPos.y);
             }
 
             free(newStr);
             start = i + 2;
+            lastPos = pos;
         }
         ++i;
     }
+
+    static int line = 0;
+    printf("Arrow count for line %i: %i\n", line++, arrowCount);
 }
 
-#define MoveAndTestSand \
-if (TestPos(sandTest, caveBitfield) && TestPos(sandTest, sandBitfield))\
-{\
-    sand.x = sandTest.x;\
-    continue;\
-}\
+void PrintSandAndCave(unsigned long long* caveBitfield,
+    unsigned long long* sandBitfield,
+    const Pos sand,
+    const int widthStart,
+    const int widthEnd,
+    const int height)
+{
+    for (int i = 0; i < height + 1; ++i)
+    {
+		for (int j = widthStart - 1; j < widthEnd + 1; ++j)
+		{
+            Pos pos = { j, i };
+
+            if (sand.x == pos.x && sand.y == pos.y)
+            {
+                printf("\x1B[33mo");
+            }
+            else if (!TestPos(pos, caveBitfield))
+            {
+                printf("\033[0m#");
+            }
+			else if (!TestPos(pos, sandBitfield))
+			{
+				printf("\033[0mo");
+			}
+            else
+            {
+                printf("\033[0m.");
+            }
+		}
+        printf("\033[0m\n");
+    }
+    printf("\n");
+}
 
 void ExecuteDay14_Part1(DayData* dayData)
 {
-    unsigned long long caveBitfield[8];
-    unsigned long long sandBitfield[8];
+    unsigned long long caveBitfield[BITFIELD];
+    unsigned long long sandBitfield[BITFIELD];
 
     for (int i = 0; i < CAVE_BITFIELD_SIZE; ++i)
     {
@@ -141,19 +197,16 @@ void ExecuteDay14_Part1(DayData* dayData)
     }
 
     int escapeZone = 0;
-    int largestOffset = 0;
+    int lowestWidth = 0;
+    int highestWidth = 0;
     for (int i = 0; i < dayData->m_DataLength; ++i)
     {
-        ParseVectors(dayData->m_Data[i], caveBitfield, &escapeZone, &largestOffset);
-    }
-
-    if (largestOffset > CAVE_BITFIELD_SIZE)
-    {
-        printf("\nWarning offset is larger than size, array needs to be BIGGER! %i.\n\n", largestOffset);
+        ParseVectors(dayData->m_Data[i], caveBitfield, &escapeZone, &lowestWidth, &highestWidth);
     }
 
     int sandCount = 0;
     BOOL hasSandEscaped = FALSE;
+    int i = 0;
     while(!hasSandEscaped)
     {
         // 500 x, but we offset by 500 so sshhh..
@@ -163,67 +216,51 @@ void ExecuteDay14_Part1(DayData* dayData)
 
         while(!isSandPlaced)
         {
-            //sand.y -= 1;
+            static const int TEST_COUNT = 3;
+            Pos tests[] = { { 0, 1 }, { -1, 1 }, { 1, 1 } };
 
-            Pos sandTest = sand;
-            sandTest.y += 1;
-
-            PairedPos testPairedPos = PairPos(sandTest);
-
-            if (!(caveBitfield[testPairedPos.pairingArrayOffset] & testPairedPos.x))
+            BOOL foundPlaceToGo = FALSE;
+            for (int i = 0; i < TEST_COUNT; ++i)
             {
-                if (sandBitfield[testPairedPos.pairingArrayOffset] & testPairedPos.x)
+                Pos sandTest = sand;
+                sandTest.x += tests[i].x;
+                sandTest.y += tests[i].y;
+
+                if (TestPos(sandTest, caveBitfield) && TestPos(sandTest, sandBitfield))
                 {
-                    //left.
-                    sandTest.x -= 1;
-                    MoveAndTestSand;
-                    
-                    //right.
-                    sandTest.x += 2;
-                    MoveAndTestSand;
-
-                    //left left.
-                    sandTest.x -= 3;
-                    MoveAndTestSand;
-
-                    //right right.
-                    sandTest.y += 4;
-                    MoveAndTestSand;
-
-                    isSandPlaced = PlacePos(sand, sandBitfield);
-                
-                    if (isSandPlaced)
-                    {
-                        ++sandCount;
-                    }
-                }
-                else
-                {
-                    // no rock and no sand, continue;
+                    sand = sandTest;
+                    foundPlaceToGo = TRUE;
+                    break;
                 }
             }
-            else
+
+            if (!foundPlaceToGo)
             {
-                // there is a rock next. stop here.
-                isSandPlaced = PlacePos(sand, sandBitfield);
-                
-                if (isSandPlaced)
+                if (PlacePos(sand, sandBitfield))
                 {
                     ++sandCount;
+                    //PrintSandAndCave(caveBitfield, sandBitfield, sand, lowestWidth, highestWidth, escapeZone);
+                    isSandPlaced = TRUE;
                 }
             }
-
-            sand = sandTest;
 
             hasSandEscaped = sand.y > escapeZone;
 
             if (hasSandEscaped)
             {
+                PrintSandAndCave(caveBitfield, sandBitfield, sand, lowestWidth, highestWidth, escapeZone);
                 break;
             }
+
+            if (i % PRINT_REGULARITY == 0)
+            {
+                //PrintSandAndCave(caveBitfield, sandBitfield, sand, lowestWidth, highestWidth, escapeZone);
+            }
+            ++i;
         }
     }
 
+    
     printf("Sand count after escape: %i\n", sandCount);
 }
 
@@ -233,3 +270,4 @@ void ExecuteDay14_Part2(DayData* dayData)
 }
 
 #undef MoveAndTestSand
+#undef BITFIELD
