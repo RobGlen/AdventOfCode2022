@@ -9,6 +9,8 @@
 #define BITFIELD 2000
 static const int CAVE_BITFIELD_SIZE = BITFIELD;
 static const int PRINT_REGULARITY = 1000;
+static const int PRINT_OFFSET = 0;
+static const float PRINT_HEIGHT_PERCENT = 1;
 
 typedef struct Pos
 {
@@ -157,7 +159,9 @@ void PrintSandAndCave(unsigned long long* caveBitfield,
     const int widthEnd,
     const int height)
 {
-    for (int i = 0; i < height + 1; ++i)
+    const int heightPotential = PRINT_OFFSET + (int)((height + 1) * PRINT_HEIGHT_PERCENT);
+    const int newHeight = height + 1 > heightPotential ? heightPotential : height + 1;
+    for (int i = PRINT_OFFSET; i < newHeight; ++i)
     {
 		for (int j = widthStart - 1; j < widthEnd + 1; ++j)
 		{
@@ -213,10 +217,12 @@ void ExecuteDay14_Part1(DayData* dayData)
         Pos sand = { 0, 0 };
         
         BOOL isSandPlaced = FALSE;
+        int testOfChoice = -1;
 
         while(!isSandPlaced)
         {
             static const int TEST_COUNT = 3;
+            //Pos auxiliaryTests[] = { { 0, 0 }, { -1, 0 }, { 1, 0 } };
             Pos tests[] = { { 0, 1 }, { -1, 1 }, { 1, 1 } };
 
             BOOL foundPlaceToGo = FALSE;
@@ -225,14 +231,29 @@ void ExecuteDay14_Part1(DayData* dayData)
                 Pos sandTest = sand;
                 sandTest.x += tests[i].x;
                 sandTest.y += tests[i].y;
+                // if (testOfChoice != -1 && (i != 0 && i != testOfChoice))
+                // {
+                //     continue;
+                // }
+                // if (!TestPos(sandTest, caveBitfield))
+                // {
+                //     break;
+                // }
+                                
 
                 if (TestPos(sandTest, caveBitfield) && TestPos(sandTest, sandBitfield))
                 {
                     sand = sandTest;
                     foundPlaceToGo = TRUE;
+
+                    if (i != 0)
+                    {
+                        testOfChoice = i;
+                    }
                     break;
                 }
             }
+            
 
             if (!foundPlaceToGo)
             {
@@ -244,7 +265,7 @@ void ExecuteDay14_Part1(DayData* dayData)
                 }
             }
 
-            hasSandEscaped = sand.y > escapeZone;
+            hasSandEscaped = sand.y > escapeZone + 3;
 
             if (hasSandEscaped)
             {
@@ -254,12 +275,24 @@ void ExecuteDay14_Part1(DayData* dayData)
 
             if (i % PRINT_REGULARITY == 0)
             {
-                //PrintSandAndCave(caveBitfield, sandBitfield, sand, lowestWidth, highestWidth, escapeZone);
+                PrintSandAndCave(caveBitfield, sandBitfield, sand, lowestWidth, highestWidth, escapeZone);
             }
             ++i;
         }
     }
 
+    sandCount = 0;
+    for (int i = 0; i < escapeZone; ++i)
+    {
+		for (int j = lowestWidth - 1; j < highestWidth + 1; ++j)
+		{
+            Pos pos = { j, i };
+            if (!TestPos(pos, sandBitfield))
+			{
+				sandCount++;
+			}
+        }
+    }
     
     printf("Sand count after escape: %i\n", sandCount);
 }
