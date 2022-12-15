@@ -24,7 +24,7 @@ def ExecuteDay14(hasFloor):
 
     file.close()
     
-    cave = []
+    cave = dict()
     lowestWidth = sys.maxsize
     highestWidth = 0
     escape = 0
@@ -47,44 +47,44 @@ def ExecuteDay14(hasFloor):
                 escape = caveVec[1]
 
             while lastCaveVec != None and lastCaveVec != caveVec:
-                cave.append(copy.copy(lastCaveVec))
+                cave[(lastCaveVec[0], lastCaveVec[1])] = '#'
                 vecDelta = [caveVec[0] - lastCaveVec[0], caveVec[1] - lastCaveVec[1]]
 
                 lastCaveVec[0] += int(((vecDelta[0]) / abs(vecDelta[0])) if (vecDelta[0] != 0) else 0)
                 lastCaveVec[1] += int(((vecDelta[1]) / abs(vecDelta[1])) if (vecDelta[1] != 0) else 0)
             
             if lastCaveVec != None:
-                cave.append(copy.copy(lastCaveVec))
+                cave[(lastCaveVec[0], lastCaveVec[1])] = '#'
             lastCaveVec = caveVec
 
     lastCaveVec = None
-    sands = []
+    sands = dict()
 
     tests = [(0,1), (-1, 1), (1, 1)]
     sandHasEscaped = False
     
     sandCount = 0
-    while(not sandHasEscaped) or [500, 0] in sands:
-        sand = [500, 0]
+    while(not sandHasEscaped) and (500, 0) not in sands:
+        sand = (500, 0)
         sandIsPlaced = False
         
         while(not sandIsPlaced):
             foundPlaceToGo = False
             for test in tests:
-                sandTest = [0, 0]
-                sandTest[0] = sand[0] + test[0]
-                sandTest[1] = sand[1] + test[1]
+                sandTest = (sand[0] + test[0], sand[1] + test[1])
+                #sandTest[0] = 
+                #sandTest[1] = 
                 if sandTest not in cave and sandTest not in sands:
                     sand = sandTest
                     foundPlaceToGo = True
                     break
-            if not foundPlaceToGo or (hasFloor and sand[1] == escape + 2):
-                sands.append(sand)
+            if not foundPlaceToGo or (hasFloor and sand[1] == escape + 1):
+                sands[sand] = 'o'
                 sandCount += 1
                 sandIsPlaced = True
             #PrintSandAndCave(lowestWidth - 1, highestWidth + 1, escape + 1, sands, cave, sand)
             sandHasEscaped = not hasFloor and sand[1] > escape
-            if (sandHasEscaped) or [500, 0] in sands:
+            if (sandHasEscaped) or (500, 0) in sands:
                 break
     print("SandCount: ", sandCount)
 
